@@ -6,7 +6,7 @@
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">添加角色</el-button>
     </div>
 
-    <el-table v-loading="listLoading" :key="tableKey" :data="list" border fit highlight-current-row style="width: 100%;">
+    <el-table v-loading="listLoading" :data="list" border fit highlight-current-row style="width: 100%;">
       <el-table-column label="序号" align="center" width="65">
         <template slot-scope="scope">
           <span>{{ scope.row.id }}</span>
@@ -19,7 +19,7 @@
       </el-table-column>
       <el-table-column label="备注" align="center">
         <template slot-scope="scope">
-          <!-- <span>{{ scope.row.timestamp }}</span> -->
+          <span>{{ scope.row.remark }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center">
@@ -66,18 +66,7 @@
 
 <script>
 import waves from '@/directive/waves' // 水波纹指令
-// import { parseTime } from '@/utils'
 import request from '@/utils/request'
-
-const calendarTypeOptions = [
-  { key: 'CN', display_name: '管理员' },
-  { key: 'US', display_name: '导师' },
-  { key: 'JP', display_name: '学员' }
-]
-
-const typeOptions = [{ key: 'CN', display_name: '心理学' }]
-
-const importanceOptions = [1, 2, 3]
 
 export default {
   name: 'ComplexTable',
@@ -87,40 +76,17 @@ export default {
   filters: {},
   data() {
     return {
-      tableKey: 0,
       list: null,
       total: null,
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
-        importance: undefined,
-        name: undefined,
-        type: undefined,
-        sort: '+id'
+        limit: 10,
+        name: ''
       },
-      importanceOptions,
-      calendarTypeOptions,
-      typeOptions,
-      sortOptions: [
-        { label: 'ID Ascending', key: '+id' },
-        { label: 'ID Descending', key: '-id' }
-      ],
-      statusOptions: ['published', 'draft', 'deleted'],
-      showReviewer: false,
-      temp: {
-        id: undefined,
-        remark: '',
-        roleName: ''
-      },
+      temp: {},
       dialogFormVisible: false,
       dialogStatus: '',
-      textMap: {
-        update: 'Edit',
-        create: 'Create'
-      },
-      dialogPvVisible: false,
-      pvData: [],
       rules: {
         type: [
           { required: true, message: 'type is required', trigger: 'change' }
@@ -141,6 +107,7 @@ export default {
     }
   },
   created() {
+    this.resetTemp()
     this.getList()
   },
   methods: {
@@ -175,8 +142,8 @@ export default {
         }
       })
         .then(resData => {
-          this.list = resData.data.items
-          this.total = resData.data.pager.total
+          this.list = resData.data.list
+          this.total = resData.data.total
         })
         .catch(err => {
           console.log(err)
@@ -244,7 +211,7 @@ export default {
           const tempData = Object.assign({}, this.temp)
           request({
             url: '/roles',
-            method: 'post',
+            method: 'put',
             data: tempData
           })
             .then(resData => {

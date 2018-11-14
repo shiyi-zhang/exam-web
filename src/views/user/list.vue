@@ -113,19 +113,8 @@
 </template>
 
 <script>
-import { fetchList, createArticle, updateArticle } from '@/api/article'
 import waves from '@/directive/waves' // 水波纹指令
-// import { parseTime } from '@/utils'
-
-const calendarTypeOptions = [
-  { key: 'CN', display_name: '管理员' },
-  { key: 'US', display_name: '导师' },
-  { key: 'JP', display_name: '学员' }
-]
-
-const typeOptions = [{ key: 'CN', display_name: '心理学' }]
-
-const importanceOptions = [1, 2, 3]
+import request from '@/utils/request'
 
 export default {
   name: 'ComplexTable',
@@ -141,38 +130,11 @@ export default {
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 20,
-        importance: undefined,
-        title: undefined,
-        type: undefined,
-        sort: '+id'
+        limit: 10
       },
-      importanceOptions,
-      calendarTypeOptions,
-      typeOptions,
-      sortOptions: [
-        { label: 'ID Ascending', key: '+id' },
-        { label: 'ID Descending', key: '-id' }
-      ],
-      statusOptions: ['published', 'draft', 'deleted'],
-      showReviewer: false,
-      temp: {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        type: '',
-        status: 'published'
-      },
+      temp: {},
       dialogFormVisible: false,
       dialogStatus: '',
-      textMap: {
-        update: 'Edit',
-        create: 'Create'
-      },
-      dialogPvVisible: false,
-      pvData: [],
       rules: {
         type: [
           { required: true, message: 'type is required', trigger: 'change' }
@@ -188,33 +150,46 @@ export default {
         title: [
           { required: true, message: 'title is required', trigger: 'blur' }
         ]
-      },
-      downloadLoading: false
+      }
     }
   },
   created() {
+    this.resetTemp()
     this.getList()
   },
   methods: {
+    resetTemp() {
+      this.temp = {
+        id: undefined,
+        importance: 1,
+        remark: '',
+        timestamp: new Date(),
+        title: '',
+        status: 'published',
+        type: ''
+      }
+    },
     getList() {
       this.listLoading = true
-      fetchList(this.listQuery).then(response => {
-        this.list = [{
-          id: 1,
-          name: '测试',
-          num: 1,
-          timestamp: '2018-10-21 08:00:00',
-          paper: '试卷',
-          type: '模考',
-          role: '心理二级'
-        }]
-        this.total = 1
-
-        // Just to simulate the time of the request
-        setTimeout(() => {
-          this.listLoading = false
-        }, 1.5 * 1000)
+      request({
+        url: '/special',
+        method: 'get',
+        params: {
+          pageNo: this.listQuery.page,
+          pageSize: this.listQuery.limit,
+          name: this.listQuery.name
+        }
       })
+        .then(resData => {
+          this.list = resData.data.list
+          this.total = resData.data.total
+        })
+        .catch(err => {
+          console.log(err)
+        })
+      setTimeout(() => {
+        this.listLoading = false
+      }, 0.5 * 1000)
     },
     handleFilter() {
       this.listQuery.page = 1
@@ -228,17 +203,7 @@ export default {
       this.listQuery.page = val
       this.getList()
     },
-    resetTemp() {
-      this.temp = {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
-      }
-    },
+
     handleCreate() {
       this.resetTemp()
       this.dialogStatus = 'create'
@@ -252,16 +217,6 @@ export default {
         if (valid) {
           this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
           this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp)
-            this.dialogFormVisible = false
-            this.$notify({
-              title: '成功',
-              message: '创建成功',
-              type: 'success',
-              duration: 2000
-            })
-          })
         }
       })
     },
@@ -279,22 +234,6 @@ export default {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
           tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
-          updateArticle(tempData).then(() => {
-            for (const v of this.list) {
-              if (v.id === this.temp.id) {
-                const index = this.list.indexOf(v)
-                this.list.splice(index, 1, this.temp)
-                break
-              }
-            }
-            this.dialogFormVisible = false
-            this.$notify({
-              title: '成功',
-              message: '更新成功',
-              type: 'success',
-              duration: 2000
-            })
-          })
         }
       })
     },
