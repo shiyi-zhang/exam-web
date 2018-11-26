@@ -1,6 +1,5 @@
 <template>
   <div class="createPost-container">
-
     <el-form ref="postForm" :model="postForm" :rules="rules" class="form-container">
       <sticky class-name="sub-navbar dark">
         <el-button v-loading="loading" type="warning" @click="draftForm">取消</el-button>
@@ -8,7 +7,6 @@
         </el-button>
       </sticky>
       <div class="createPost-main-container">
-
         <el-row>
           <el-col :span="24">
             <el-form-item style="margin-bottom: 40px;" prop="title">
@@ -16,7 +14,6 @@
                 标题
               </MDinput>
             </el-form-item>
-
             <div class="postInfo-container">
               <el-row>
                 <el-col :span="6">
@@ -34,16 +31,13 @@
             </div>
           </el-col>
         </el-row>
-
         <el-form-item style="margin-bottom: 40px;" label-width="45px" label="摘要:">
           <el-input :rows="1" v-model="postForm.content_short" type="textarea" class="article-textarea" autosize placeholder="请输入内容"/>
           <span v-show="contentShortLength" class="word-counter">{{ contentShortLength }}字</span>
         </el-form-item>
-
         <div class="editor-container">
           <Tinymce ref="editor" :height="400" v-model="postForm.content" />
         </div>
-
       </div>
     </el-form>
 

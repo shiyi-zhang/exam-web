@@ -1,15 +1,15 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="listQuery.title" placeholder="试题内容" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-select v-model="listQuery.importance" placeholder="试题类型" clearable style="width: 90px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item"/>
+      <el-input v-model="listQuery.content" placeholder="试题内容" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-select v-model="listQuery.type" placeholder="试题类型" clearable style="width: 90px" class="filter-item">
+        <el-option v-for="item in examTypes" :key="item.id" :label="item.name" :value="item.id"/>
       </el-select>
-      <el-select v-model="listQuery.importance" placeholder="专业" clearable style="width: 90px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item"/>
+      <el-select v-model="listQuery.special" placeholder="专业" clearable filterable style="width: 190px;" class="filter-item">
+        <el-option v-for="item in specials" :key="item.id" :label="item.name" :value="item.id"/>
       </el-select>
-      <el-select v-model="listQuery.importance" placeholder="考点" clearable style="width: 90px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item"/>
+      <el-select v-model="listQuery.paper" placeholder="试卷" clearable style="width: 90px" class="filter-item">
+        <el-option v-for="item in papers" :key="item.id" :label="item.name" :value="item.id"/>
       </el-select>
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">添加试题</el-button>
@@ -23,7 +23,7 @@
       </el-table-column>
       <el-table-column label="试题内容" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.name }}</span>
+          <span>{{ scope.row.content }}</span>
         </template>
       </el-table-column>
       <el-table-column label="试题类型" align="center">
@@ -33,23 +33,22 @@
       </el-table-column>
       <el-table-column label="专业" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.role }}</span>
+          <span>{{ scope.row.specialId }}</span>
         </template>
       </el-table-column>
       <el-table-column label="考点" align="center">
         <template slot-scope="scope">
-          <el-tag>{{ scope.row.id }}</el-tag>
-          <el-tag>{{ scope.row.id }}</el-tag>
+          <span>{{ scope.row.testCentreId }}</span>
         </template>
       </el-table-column>
       <el-table-column label="试卷名称" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.paper }}</span>
+          <span>{{ scope.row.paperId }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.timestamp }}</span>
+          <span>{{ scope.row.createTime }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="140">
@@ -66,45 +65,45 @@
       <el-pagination v-show="total>0" :current-page="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" :total="total" background layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     </div>
 
-    <el-dialog :visible.sync="dialogFormVisible" title="添加用户" width="70%">
+    <el-dialog :visible.sync="dialogFormVisible" title="添加试题" width="70%">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="right" label-width="100px" style="width: 800px; margin-left:50px;">
-        <el-form-item label="试题内容" prop="title">
-          <el-input :autosize="{ minRows: 2, maxRows: 4}" v-model="temp.remark" type="textarea" placeholder="Please input" />
+        <el-form-item label="试题内容" >
+          <el-input :autosize="{ minRows: 2, maxRows: 4}" v-model="temp.content" type="textarea" placeholder="Please input" />
         </el-form-item>
-        <el-form-item label="试卷名称" >
-          <el-select placeholder="">
-            <el-option :key="1" label="测试试卷"/>
+        <el-form-item label="试卷" >
+          <el-select v-model="temp.paperId" placeholder="试卷" clearable class="filter-item">
+            <el-option v-for="item in papers" :key="item.id" :label="item.name" :value="item.id"/>
           </el-select>
         </el-form-item>
         <el-form-item label="考点" >
-          <el-select placeholder="">
-            <el-option :key="1" label="测试考点"/>
+          <el-select v-model="temp.testCentreId" placeholder="试卷" clearable class="filter-item">
+            <el-option v-for="item in testCentres" :key="item.id" :label="item.name" :value="item.id"/>
           </el-select>
         </el-form-item>
-        <el-form-item label="专业" prop="title">
-          <el-select placeholder="">
-            <el-option :key="1" label="测试专业"/>
+        <el-form-item label="专业" >
+          <el-select v-model="temp.specialId" placeholder="专业" clearable class="filter-item">
+            <el-option v-for="item in specials" :key="item.id" :label="item.name" :value="item.id"/>
           </el-select>
         </el-form-item>
-        <el-form-item label="试题类型" prop="title">
-          <el-select placeholder="">
-            <el-option :key="1" label="单选"/>
-            <el-option :key="2" label="多选"/>
+        <el-form-item label="试题类型" >
+          <el-select v-model="temp.type" placeholder="试题类型" clearable class="filter-item">
+            <el-option v-for="item in examTypes" :key="item.id" :label="item.name" :value="item.id"/>
           </el-select>
         </el-form-item>
         <el-form-item
-          v-for="(domain, index) in domains"
+          v-for="(answer, index) in temp.answers"
           :label="'答案 ' + (index+1)"
-          :key="domain.key"
-          :prop="'domains.' + index + '.value'"
+          :key="answer.index"
+          :prop="'answers[' + index + ']'"
           :rules="{
             required: true, message: '答案不能为空', trigger: 'blur'
           }"
         >
-          <el-input v-model="domain.value"/><el-button @click.prevent="removeDomain(domain)">删除</el-button>
+          <el-checkbox v-model="answer.answer" label=""/>
+          <el-input v-model="answer.label" style="width:420px;"/><el-button @click.prevent="removeDomain(answer)">删除</el-button>
         </el-form-item>
-        <el-form-item label="解析" prop="title">
-          <Tinymce ref="editor" :height="400" v-model="cont" />
+        <el-form-item label="解析" >
+          <Tinymce ref="editor" :height="200" v-model="temp.analysis" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input :autosize="{ minRows: 2, maxRows: 4}" v-model="temp.remark" type="textarea" placeholder="Please input" />
@@ -124,6 +123,7 @@
 import waves from '@/directive/waves' // 水波纹指令
 import Tinymce from '@/components/Tinymce'
 import request from '@/utils/request'
+import constant from '@/utils/constant'
 
 export default {
   name: 'ComplexTable',
@@ -134,24 +134,24 @@ export default {
   filters: {},
   data() {
     return {
-      cent: '',
+      examTypes: constant.examTypes,
+      specials: [],
+      papers: [],
+      testCentres: [],
+      exams: [],
       tableKey: 0,
       list: null,
       total: null,
       listLoading: true,
       listQuery: {
         page: 1,
-        limit: 10
-      },
-      temp: {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
+        limit: 10,
+        content: '',
         type: '',
-        status: 'published'
+        special: '',
+        paper: ''
       },
+      temp: {},
       dialogFormVisible: false,
       dialogStatus: '',
       rules: {
@@ -172,61 +172,93 @@ export default {
       }
     }
   },
+  mounted() {
+
+  },
   created() {
     this.resetTemp()
     this.getList()
+    this.testCentresDropdown()
+    this.specialsDropdown()
+    this.paperDropdown()
   },
   methods: {
     resetTemp() {
       this.temp = {
         id: undefined,
-        importance: 1,
+        content: '',
+        paperId: '',
+        testCentreId: '',
+        specialId: '',
+        type: '',
+        importance: '',
         remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
+        analysis: '',
+        answers: [{ label: '', answer: false, level: 0 }]
       }
+    },
+    specialsDropdown() {
+      request({
+        url: '/list/specials',
+        method: 'get'
+      })
+        .then(resData => {
+          this.specials = resData.data
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    testCentresDropdown() {
+      request({
+        url: '/list/testCentres',
+        method: 'get'
+      })
+        .then(resData => {
+          this.testCentres = resData.data
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     paperDropdown() {
       request({
-        url: '/list/exams',
-        method: 'get',
-        params: {
-          pageNo: this.listQuery.page,
-          pageSize: this.listQuery.limit,
-          name: this.listQuery.name
-        }
+        url: '/list/papers',
+        method: 'get'
       })
         .then(resData => {
-          this.list = resData.data.list
-          this.total = resData.data.total
+          this.papers = resData.data
         })
         .catch(err => {
           console.log(err)
         })
     },
     removeDomain(item) {
-      var index = this.domains.indexOf(item)
+      var index = this.temp.answers.indexOf(item)
       if (index !== -1) {
-        this.domains.splice(index, 1)
+        this.temp.answers.splice(index, 1)
       }
     },
     addDomain() {
-      this.domains.push({
-        value: '',
-        key: Date.now()
+      var len = this.temp.answers.length
+      this.temp.answers.push({
+        label: '',
+        answer: false,
+        level: len
       })
     },
     getList() {
       this.listLoading = true
       request({
-        url: '/special',
+        url: '/exams',
         method: 'get',
         params: {
           pageNo: this.listQuery.page,
           pageSize: this.listQuery.limit,
-          name: this.listQuery.name
+          examContent: this.listQuery.content,
+          type: this.listQuery.type,
+          specialId: this.listQuery.special,
+          paperId: this.listQuery.paper
         }
       })
         .then(resData => {
@@ -264,36 +296,89 @@ export default {
     createData() {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
-          return
+          const tempData = Object.assign({}, this.temp)
+          request({
+            url: '/exams',
+            method: 'post',
+            data: tempData
+          })
+            .then(resData => {
+              this.$notify({
+                title: '成功',
+                message: '添加成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+              this.dialogFormVisible = false
+            })
+            .catch(err => {
+              console.log(err)
+            })
         }
       })
     },
     handleUpdate(row) {
-      this.temp = Object.assign({}, row) // copy obj
-      this.temp.timestamp = new Date(this.temp.timestamp)
-      this.dialogStatus = 'update'
-      this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
+      this.resetTemp()
+      request({
+        url: '/exams/' + row.id,
+        method: 'get'
       })
+        .then(resData => {
+          this.temp = resData.data
+          this.dialogStatus = 'update'
+          this.dialogFormVisible = true
+          this.$nextTick(() => {
+            this.$refs['dataForm'].clearValidate()
+          })
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     updateData() {
       this.$refs['dataForm'].validate(valid => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
-          tempData.timestamp = +new Date(tempData.timestamp) // change Thu Nov 30 2017 16:41:05 GMT+0800 (CST) to 1512031311464
+          request({
+            url: '/exams',
+            method: 'put',
+            data: tempData
+          })
+            .then(resData => {
+              this.$notify({
+                title: '成功',
+                message: '更新成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.getList()
+              this.dialogFormVisible = false
+            })
+            .catch(err => {
+              console.log(err)
+            })
         }
       })
     },
     handleDelete(row) {
-      this.$notify({
-        title: '成功',
-        message: '删除成功',
-        type: 'success',
-        duration: 2000
+      request({
+        url: '/exams',
+        method: 'delete',
+        params: { id: row.id }
       })
-      const index = this.list.indexOf(row)
-      this.list.splice(index, 1)
+        .then(resData => {
+          this.$notify({
+            title: '成功',
+            message: '删除成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.getList()
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
 }
